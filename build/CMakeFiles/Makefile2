@@ -1349,8 +1349,8 @@ CMakeFiles\ELF2UF2Build.dir\clean:
 # Target rules for target CMakeFiles/bmp280_pio.dir
 
 # All Build rule for target.
-CMakeFiles\bmp280_pio.dir\all: CMakeFiles\bmp280_pio_spi_pio_h.dir\all
 CMakeFiles\bmp280_pio.dir\all: CMakeFiles\ELF2UF2Build.dir\all
+CMakeFiles\bmp280_pio.dir\all: CMakeFiles\bmp280_pio_spi_pio_h.dir\all
 CMakeFiles\bmp280_pio.dir\all: pico-sdk\src\rp2_common\boot_stage2\CMakeFiles\bs2_default_padded_checksummed_asm.dir\all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\bmp280_pio.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\bmp280_pio.dir\depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\bmp280_pio.dir\build.make /nologo -$(MAKEFLAGS) CMakeFiles\bmp280_pio.dir\build

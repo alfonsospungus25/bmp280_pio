@@ -15,6 +15,7 @@
 #define CS   1
 #define SCLK 18
 #define MOSI 19
+#define BUTTON_PIN 1
 
 //** Code from Datasheet BMP280 **//
 //https://cdn-shop.adafruit.com/datasheets/BST-BMP280-DS001-11.pdf//
@@ -54,10 +55,20 @@ void read_temp_comp(const pio_spi_inst_t *spi){
     dig_T3 = buffer[4] | (buffer[5] << 8);
 }
 
-void read_data(const pio_spi_inst_t *spi){
-   int32_t temperature, rawtemp;
-    uint8_t reg;
-    uint8_t buffer[3] = {0,0,0};
+void read(const pio_spi_inst_t *spi){
+        read_temp_comp(spi);
+        int32_t temperature, rawtemp;
+        uint8_t reg;
+        uint8_t buffer[3] = {0,0,0};
+
+//This Code is from LEARN EMBEDDED SYSTEMS with some edited made by Alfonso for PIO//
+//if this is deleted, we just get a constant number.
+    uint8_t data[2]; // Array to store data to be sent
+    data[0] = 0xF4 & 0x7F; // Remove first bit to indicate write operation
+    data[1] = 0x27; // Data to be sent
+    gpio_put(CS, 0);
+    pio_spi_write8_blocking(spi, data, 2); //EDITED
+    gpio_put(CS, 1);
   reg = 0xFA | 0X80; // Reg 0xFA is The “temp” register contains the raw temperature measurement output data 
         gpio_put(CS, 0);
         pio_spi_write8_blocking(spi, &reg, 1);  //EDITED
@@ -72,7 +83,7 @@ void read_data(const pio_spi_inst_t *spi){
 }
 
  void event_callback(uint gpio, uint32_t events){
-     read_temp_comp(&spi);
+     read(&spi);
  }
 
 int main() {
@@ -87,8 +98,12 @@ int main() {
     gpio_init(spi.cs_pin);
     gpio_put(spi.cs_pin, 1);
     gpio_set_dir(spi.cs_pin, GPIO_OUT);
+
+    gpio_init(BUTTON_PIN);
+    gpio_set_dir(BUTTON_PIN,GPIO_IN);
+    gpio_pull_up(BUTTON_PIN);
     
-    gpio_set_irq_enabled_with_callback(CS, 0x02, 1, event_callback);
+    gpio_set_irq_enabled_with_callback(BUTTON_PIN, 0x04, 1, event_callback);
 
     //define prog_offs  
     uint prog_offs = pio_add_program(spi.pio, &spi_cpha0_program);
@@ -106,17 +121,17 @@ int main() {
     );
 //*********End Alfonso Code*************//  
 
-    //read the temperature Compensation
-    //read_temp_comp(&spi);
+//     //read the temperature Compensation
+//     read_temp_comp(&spi);
 
-//This Code is from LEARN EMBEDDED SYSTEMS with some edited made by Alfonso for PIO//
-//if this is deleted, we just get a constant number.
-    uint8_t data[2]; // Array to store data to be sent
-    data[0] = 0xF4 & 0x7F; // Remove first bit to indicate write operation
-    data[1] = 0x27; // Data to be sent
-    gpio_put(spi.cs_pin, 0);
-    pio_spi_write8_blocking(&spi, data, 2); //EDITED
-    gpio_put(spi.cs_pin, 1);
+// //This Code is from LEARN EMBEDDED SYSTEMS with some edited made by Alfonso for PIO//
+// //if this is deleted, we just get a constant number.
+//     uint8_t data[2]; // Array to store data to be sent
+//     data[0] = 0xF4 & 0x7F; // Remove first bit to indicate write operation
+//     data[1] = 0x27; // Data to be sent
+//     gpio_put(spi.cs_pin, 0);
+//     pio_spi_write8_blocking(&spi, data, 2); //EDITED
+//     gpio_put(spi.cs_pin, 1);
     
     // int32_t temperature, rawtemp;
     // uint8_t reg;
@@ -134,7 +149,6 @@ int main() {
         // temperature = compTemp(rawtemp);
 
         // printf("Temp = %.2fC \n", temperature / 100.00);
-        tight_loop_contents();
     };
 }
 //*************END of LEARN EMBEDDED SYSTEMS Code****************//
